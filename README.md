@@ -1,6 +1,6 @@
 # aws-strands
 
-A [Strands](https://strands.dev) agent that uses **AWS Bedrock** as the LLM backend, with built-in and custom tools (calculator, current time, letter counter).
+[Strands](https://strands.dev) agents using **AWS Bedrock** as the LLM backend: a single-agent demo with tools, and a three-stage research workflow (Researcher → Analyst → Writer) with web research.
 
 ## Setup
 
@@ -30,17 +30,32 @@ Do not commit `.env`; it is for local secrets only.
 
 ## Usage
 
-Run the agent:
+### Single agent (`agent.py`)
+
+Runs one agent with tools (calculator, current time, letter counter) on a fixed multi-part question:
 
 ```bash
 python agent.py
 ```
 
-The script sends a single message that asks for the current time, a calculation, and a letter count; the agent uses the available tools and Bedrock to answer.
+### Research workflow (`agents_workflow.py`)
+
+Interactive three-agent pipeline for research and fact-checking using the web:
+
+1. **Researcher** – Fetches information via `http_request`
+2. **Analyst** – Verifies facts and summarizes findings
+3. **Writer** – Produces the final report
+
+```bash
+python agents_workflow.py
+```
+
+At the `> ` prompt, enter a research question or a claim to fact-check (e.g. *"What are quantum computers?"* or *"Tuesday comes before Monday in the week"*). Type `exit` to quit.
 
 ## Project layout
 
-- `agent.py` – Strands agent with tools (`calculator`, `current_time`, custom `letter_counter`)
+- `agent.py` – Single Strands agent with tools (`calculator`, `current_time`, custom `letter_counter`)
+- `agents_workflow.py` – Research assistant: Researcher → Analyst → Writer workflow with web tools
 - `requirements.txt` – Python dependencies (boto3, strands-agents, strands-agents-tools, strands-agents-builder, python-dotenv)
 - `env.example` – Template for `.env` (AWS credentials)
 
