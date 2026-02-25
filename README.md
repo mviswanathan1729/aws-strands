@@ -1,6 +1,6 @@
 # aws-strands
 
-[Strands](https://strands.dev) agents using **AWS Bedrock** as the LLM backend: a single-agent demo with tools, a three-stage research workflow (Researcher → Analyst → Writer) with web research, and an **orchestrator** that routes queries to specialized sub-agents (Math and General).
+[Strands](https://strands.dev) agents using **AWS Bedrock** as the LLM backend: a single-agent demo with tools, a three-stage research workflow (Researcher → Analyst → Writer) with web research, an **orchestrator** that routes queries to specialized sub-agents (Math and General), and an **MCP calculator** example (server + client).
 
 ## Setup
 
@@ -40,7 +40,7 @@ python agent.py
 
 ### Research workflow (`agents_workflow.py`)
 
-Interactive three-agent pipeline for research and fact-checking using the web:
+In a sequential workflow, agents process tasks in a defined order, with each agent's output becoming the input for the next. Interactive three-agent pipeline for research and fact-checking using the web:
 
 1. **Researcher** – Fetches information via `http_request`
 2. **Analyst** – Verifies facts and summarizes findings
@@ -67,14 +67,25 @@ Run from the project root (loads `.env` from there):
 python multi-agents/orchestrator.py
 ```
 
-Or from inside the folder:
+At the `> ` prompt, ask anything (math, general knowledge, or both). Example: *"What is the approximate population of India? If it increased by 1.5% per year for 10 years, what would the new population be?"* — the orchestrator will route to General Assistant (for the population) and Math Assistant (for the growth calculation), then summarize. Type `exit` to quit.
+
+### MCP calculator (`mcp/`)
+
+An **MCP (Model Context Protocol)** example: a calculator server exposing tools (add, subtract, multiply, divide) over HTTP, and a Strands client that connects to it and uses those tools via natural language.
+
+**Run the server** (terminal 1, from project root with venv’s Python so the installed `mcp` package is used):
 
 ```bash
-cd multi-agents
-python orchestrator.py
+python mcp/mcp_server.py
 ```
 
-At the `> ` prompt, ask anything (math, general knowledge, or both). Example: *"What is the approximate population of India? If it increased by 1.5% per year for 10 years, what would the new population be?"* — the orchestrator will route to General Assistant (for the population) and Math Assistant (for the growth calculation), then summarize. Type `exit` to quit.
+**Run the client** (terminal 2):
+
+```bash
+python mcp/mcp_client.py
+```
+
+The client prompts with `Question: ` — ask things like *"What is 12 plus 4?"* or *"Divide 100 by 3."* Type `exit` to quit.
 
 ## Project layout
 
@@ -83,6 +94,8 @@ At the `> ` prompt, ask anything (math, general knowledge, or both). Example: *"
 - `multi-agents/orchestrator.py` – TeachAssist orchestrator; routes to Math and General sub-agents
 - `multi-agents/math_assistant.py` – Math specialist (Strands agent + calculator tool, exposed as a tool)
 - `multi-agents/general_assistant.py` – General-knowledge specialist (Strands agent, exposed as a tool)
+- `mcp/mcp_server.py` – MCP calculator server (Streamable HTTP)
+- `mcp/mcp_client.py` – MCP calculator client (Strands agent using server tools)
 - `requirements.txt` – Python dependencies (boto3, strands-agents, strands-agents-tools, strands-agents-builder, python-dotenv)
 - `env.example` – Template for `.env` (AWS credentials)
 
