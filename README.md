@@ -1,6 +1,6 @@
 # aws-strands
 
-[Strands](https://strands.dev) agents using **AWS Bedrock** as the LLM backend: a single-agent demo with tools, a three-stage research workflow (Researcher → Analyst → Writer) with web research, an **orchestrator** that routes queries to specialized sub-agents (Math and General), and an **MCP calculator** example (server + client).
+[Strands](https://strands.dev) agents using **AWS Bedrock** as the LLM backend: a single-agent demo with tools, a three-stage research workflow (Researcher → Analyst → Writer) with web research, an **orchestrator** that routes queries to specialized sub-agents (Math and General), an **MCP calculator** example (server + client), and an **A2A (Agent-to-Agent)** calculator (server + client).
 
 ## Setup
 
@@ -87,6 +87,32 @@ python mcp/mcp_client.py
 
 The client prompts with `Question: ` — ask things like *"What is 12 plus 4?"* or *"Divide 100 by 3."* Type `exit` to quit.
 
+### A2A calculator (`a2a/`)
+
+An **A2A (Agent-to-Agent)** example: a calculator server that exposes a Strands agent over the [A2A protocol](https://spec.modelcontextprotocol.io/specification/a2a/) (JSON-RPC over HTTP), and a client that sends a question and prints the agent’s answer.
+
+**Server** (`a2a_server.py`): Strands agent with the SymPy calculator tool, wrapped in `A2AServer`. Serves the agent card at `/.well-known/agent-card.json` and handles messages at `/`. Requires AWS credentials (Bedrock) in `.env`; loads them from the project root.
+
+**Client** (`a2a_client.py`): Uses the `a2a` client library to fetch the agent card, send a single message (e.g. *"what is 70 * 11"*), and print the extracted answer text from the task response.
+
+**Run the server** (terminal 1, from project root; ensure `.env` is configured):
+
+```bash
+python a2a/a2a_server.py
+```
+
+Server listens on `http://127.0.0.1:9000` by default.
+
+**Run the client** (terminal 2):
+
+```bash
+python a2a/a2a_client.py
+```
+
+The client sends one question, prints **Answer:** followed by the agent’s reply, then exits. To ask a different question, edit the `send_sync_message(...)` call in `a2a_client.py` or call it with another URL/query.
+
+If the client reports a JSON-RPC internal error, check the **server** terminal for the real traceback (e.g. missing AWS credentials or Bedrock errors).
+
 ## Project layout
 
 - `agent.py` – Single Strands agent with tools (`calculator`, `current_time`, custom `letter_counter`)
@@ -96,7 +122,9 @@ The client prompts with `Question: ` — ask things like *"What is 12 plus 4?"* 
 - `multi-agents/general_assistant.py` – General-knowledge specialist (Strands agent, exposed as a tool)
 - `mcp/mcp_server.py` – MCP calculator server (Streamable HTTP)
 - `mcp/mcp_client.py` – MCP calculator client (Strands agent using server tools)
-- `requirements.txt` – Python dependencies (boto3, strands-agents, strands-agents-tools, strands-agents-builder, python-dotenv)
+- `a2a/a2a_server.py` – A2A calculator server (Strands agent + SymPy calculator, JSON-RPC on port 9000)
+- `a2a/a2a_client.py` – A2A client (sends one message, prints answer from task/artifacts)
+- `requirements.txt` – Python dependencies (boto3, strands-agents, strands-agents-tools, strands-agents-builder, python-dotenv, httpx)
 - `env.example` – Template for `.env` (AWS credentials)
 
 ## License
