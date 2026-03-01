@@ -1,6 +1,6 @@
-# aws-strands
+# AWS Strands
 
-[Strands](https://strands.dev) agents using **AWS Bedrock** as the LLM backend: a single-agent demo with tools, a three-stage research workflow (Researcher → Analyst → Writer) with web research, an **orchestrator** that routes queries to specialized sub-agents (Math and General), an **MCP calculator** example (server + client), and an **A2A (Agent-to-Agent)** calculator (server + client).
+[Strands](https://strands.dev) agents using **AWS Bedrock** as the LLM backend: a single-agent demo with tools, a three-stage research workflow (Researcher → Analyst → Writer) with web research, an **orchestrator** that routes queries to specialized sub-agents (Math and General), an **MCP calculator** example (server + client), an **A2A (Agent-to-Agent)** calculator (server + client), and a **Swarm** of cooperating agents (researcher, coder, reviewer, architect).
 
 ## Setup
 
@@ -113,6 +113,18 @@ The client sends one question, prints **Answer:** followed by the agent’s repl
 
 If the client reports a JSON-RPC internal error, check the **server** terminal for the real traceback (e.g. missing AWS credentials or Bedrock errors).
 
+### Swarm (`swarm.py`)
+
+A **Swarm** of four Strands agents that cooperate on a single task via handoffs: **researcher**, **coder**, **reviewer**, and **architect**. The swarm starts with the researcher; each agent can hand off to another using an injected coordination tool. Execution continues until the task is done, a timeout is hit, or repetitive handoffs are detected.
+
+Requires AWS credentials in `.env` (loads from project root). Run from project root:
+
+```bash
+python swarm.py
+```
+
+The script runs one task by default (*"Design and implement a simple REST API for a todo app"*). It prints the final status and node history. To change the task, edit the `swarm(...)` call in `swarm.py`. Debug logs for the swarm are sent to stderr.
+
 ## Project layout
 
 - `agent.py` – Single Strands agent with tools (`calculator`, `current_time`, custom `letter_counter`)
@@ -124,6 +136,7 @@ If the client reports a JSON-RPC internal error, check the **server** terminal f
 - `mcp/mcp_client.py` – MCP calculator client (Strands agent using server tools)
 - `a2a/a2a_server.py` – A2A calculator server (Strands agent + SymPy calculator, JSON-RPC on port 9000)
 - `a2a/a2a_client.py` – A2A client (sends one message, prints answer from task/artifacts)
+- `swarm.py` – Swarm of four agents (researcher, coder, reviewer, architect) with handoffs; single task run
 - `requirements.txt` – Python dependencies (boto3, strands-agents, strands-agents-tools, strands-agents-builder, python-dotenv, httpx)
 - `env.example` – Template for `.env` (AWS credentials)
 
